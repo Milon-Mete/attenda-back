@@ -13,6 +13,7 @@ const logSchema = new mongoose.Schema(
       required: [true, 'User ID is required'],
       index: true,
     },
+    // Check-in fields
     timestamp: {
       type: Date,
       default: Date.now,
@@ -53,6 +54,57 @@ const logSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Geofence',
       default: null,
+    },
+    // Shift status: 'active' = checked in but not out, 'completed' = shift done
+    status: {
+      type: String,
+      enum: ['active', 'completed'],
+      default: 'active',
+    },
+    // Check-out fields (null until checked out)
+    checkOutTimestamp: {
+      type: Date,
+      default: null,
+    },
+    checkOutSelfieUrl: {
+      type: String,
+      default: null,
+    },
+    checkOutSelfiePublicId: {
+      type: String,
+      default: null,
+    },
+    checkOutLocation: {
+      type: {
+        type: String,
+        enum: ['Point'],
+      },
+      coordinates: {
+        type: [Number],
+        validate: {
+          validator: function (coords) {
+            if (!coords) return true;
+            if (coords.length !== 2) return false;
+            const [lng, lat] = coords;
+            return lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90;
+          },
+          message: 'Invalid check-out coordinates.',
+        },
+      },
+    },
+    checkOutIsWithinGeofence: {
+      type: Boolean,
+      default: null,
+    },
+    checkOutMatchedGeofence: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Geofence',
+      default: null,
+    },
+    // Calculated hours worked for this shift
+    hoursWorked: {
+      type: Number,
+      default: null, // In hours (e.g., 8.5 = 8h30m)
     },
     deviceInfo: {
       type: String,
